@@ -1,0 +1,17 @@
+# .gitignore in backend/
+# Python
+__pycache__/
+*.pyc
+.env
+.DS_Store
+*.sqlite3
+
+# Pipenv
+Pipfile.lock
+.venv/
+
+# Logs
+*.log
+
+# IDE files (e.g., VS Code)
+.vscode/
