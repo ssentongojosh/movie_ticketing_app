@@ -21,6 +21,8 @@ from decouple import config # Import config from decouple
 # This makes it easy for decouple to find the .env file.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent # Corrected BASE_DIR
 
+print(f"Base Directory path: {BASE_DIR}")
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/X.Y/howto/deployment/checklist/
 
@@ -56,7 +58,7 @@ ROOT_URLCONF = 'MovieTicketingProject.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [], # We might add project-level templates here later
+        'DIRS': [BASE_DIR / 'backend' / 'MovieTicketingProject' / 'templates'], 
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -136,6 +138,29 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10,
 }
 
+
+
 # Where decouple should look for .env file
 # By default, it looks in the same directory as the settings file, then parent directories.
 # Since BASE_DIR is now set to the backend root, this works naturally.
+# Email Backend Settings
+# For development, print emails to console.
+# In production, you would configure an actual SMTP server or a service like SendGrid/Mailgun.
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend' # Another option for dev
+# EMAIL_FILE_PATH = BASE_DIR / 'sent_emails' # Directory where emails will be saved if using filebased backend
+
+# For production, you'd typically use:
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = config('EMAIL_HOST')
+# EMAIL_PORT = config('EMAIL_PORT', cast=int)
+# EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool)
+# EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+# EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+# DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='webmaster@localhost')
+
+# Password Reset URL (for frontend to construct the link)
+# This is the URL that will be embedded in the password reset email.
+# The frontend will then handle this route and display the password reset form.
+# We'll use a placeholder for now, assuming React will handle /reset-password/:uid/:token
+PASSWORD_RESET_CONFIRM_URL = 'http://localhost:3000/reset-password/{uid}/{token}/'
