@@ -164,3 +164,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # The frontend will then handle this route and display the password reset form.
 # We'll use a placeholder for now, assuming React will handle /reset-password/:uid/:token
 PASSWORD_RESET_CONFIRM_URL = 'http://localhost:3000/reset-password/{uid}/{token}/'
+
+# Email Verification URL (for frontend to construct the link)
+# This is the URL that will be embedded in the email verification email.
+# The frontend will then handle this route and call the backend verification API.
+EMAIL_VERIFICATION_CONFIRM_URL = 'http://localhost:3000/verify-email/{uid}/{token}/' 
