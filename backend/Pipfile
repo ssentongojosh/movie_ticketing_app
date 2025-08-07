@@ -11,6 +11,7 @@ dj-database-url = "*"
 django-cors-headers = "*"
 psycopg = "*"
 djangorestframework-simplejwt = "*"
+mysqlclient = "*"
 
 [dev-packages]
 
