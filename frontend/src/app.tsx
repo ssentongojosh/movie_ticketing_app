@@ -1,4 +1,4 @@
-import "./app.css";
+import "./App.css";
 import Welcome from "./components/Welcome";
 
 export const App = () => {
