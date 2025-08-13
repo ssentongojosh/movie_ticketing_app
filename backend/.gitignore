@@ -9,6 +9,7 @@ __pycache__/
 # Pipenv
 Pipfile.lock
 .venv/
+.python-version
 
 # Logs
 *.log
