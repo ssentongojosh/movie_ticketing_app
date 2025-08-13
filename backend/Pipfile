@@ -12,6 +12,7 @@ django-cors-headers = "*"
 psycopg = "*"
 djangorestframework-simplejwt = "*"
 mysqlclient = "*"
+honcho = "*"
 
 [dev-packages]
 
