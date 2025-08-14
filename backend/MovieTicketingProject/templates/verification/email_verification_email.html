@@ -1,0 +1,11 @@
+{% load i18n %} 
+{% autoescape off %} 
+{% blocktrans %}Hello {{user.email}},{%endblocktrans %} 
+{% blocktrans %}Thank you for registering with
+{{site_name }}. Please verify your email address by clicking on the link
+below:{%endblocktrans%} 
+{{ verification_link|safe }} 
+{% blocktrans %}If you did
+not register for an account, you can safely ignore this email.{% endblocktrans%} 
+{% trans "Thanks," %} {% blocktrans %}The {{site_name }}
+team{% endblocktrans %} {% endautoescape %}

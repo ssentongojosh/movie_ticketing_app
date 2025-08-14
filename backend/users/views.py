@@ -10,6 +10,10 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
+from .password_reset_serializers import PasswordResetRequestSerializer, PasswordResetConfirmSerializer
+from .email_verification_serializers import EmailVerificationRequestSerializer,EmailVerificationConfirmSerializer
+
+
 
 
 from .serializers import (
@@ -26,11 +30,22 @@ class UserRegistrationAPIView(APIView):
         serializer = UserRegistrationSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
+            
+            email_request_serializer = EmailVerificationRequestSerializer(
+                data={'email': user.email},
+                context={'request': request} # Pass the original request to the serializer
+            )
+            if email_request_serializer.is_valid():
+                email_request_serializer.save()
+            else:
+                # Log this error, but don't fail the registration if email sending fails
+                print(f"Error sending verification email for {user.email}: {email_request_serializer.errors}")
+            # --- END NEW ---
+
             refresh = RefreshToken.for_user(user)
-            # Use UserProfileSerializer to format the response
             return Response(
                 {
-                    "message": "User registered successfully.",
+                    "message": "User registered successfully. Please check your email to verify your account.",
                     "user": UserProfileSerializer(user).data,
                     "refresh": str(refresh),
                     "access": str(refresh.access_token),
@@ -80,3 +95,54 @@ class UserProfileAPIView(APIView):
     def delete(self, request):
         request.user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class PasswordResetRequestAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = PasswordResetRequestSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {"detail": "Password reset email has been sent if an active user with that email exists."},
+                status=status.HTTP_200_OK
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class PasswordResetConfirmAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = PasswordResetConfirmSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {"detail": "Password has been reset successfully."},
+                status=status.HTTP_200_OK
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class EmailVerificationRequestAPIView(APIView):
+    permission_classes = [AllowAny] # Allow unverified users to request verification
+
+    def post(self, request):
+        serializer = EmailVerificationRequestSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {"detail": "Email verification link has been sent if the email is unverified."},
+                status=status.HTTP_200_OK
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class EmailVerificationConfirmAPIView(APIView):
+    permission_classes = [AllowAny] # Allow unauthenticated access for verification
+
+    def post(self, request):
+        serializer = EmailVerificationConfirmSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {"detail": "Email has been successfully verified."},
+                status=status.HTTP_200_OK
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

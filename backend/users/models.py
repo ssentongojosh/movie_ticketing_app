@@ -5,6 +5,13 @@ from django.db import models
 
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.utils import timezone
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.contrib.auth.tokens import default_token_generator
+from django.conf import settings
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 import uuid # For UUID primary keys
 
 class CustomUserManager(BaseUserManager):
@@ -70,3 +77,35 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         verbose_name = 'User'
         verbose_name_plural = 'Users'
         ordering = ['-date_joined'] # Order by newest first
+    
+    def send_verification_email(self, request):
+        token = default_token_generator.make_token(self)
+        uid = urlsafe_base64_encode(force_bytes(self.pk))
+
+        # This URL will be handled by the React frontend
+        verification_link = settings.EMAIL_VERIFICATION_CONFIRM_URL.format(uid=uid, token=token)
+
+        context = {
+            'user': self,
+            'verification_link': verification_link,
+            'site_name': 'MovieTix', # Or get from Django's sites framework
+            'domain': request.get_host(),
+            'protocol': 'https' if request.is_secure() else 'http',
+        }
+
+        subject = render_to_string('verification/email_verification_subject.txt', context).strip()
+        html_message = render_to_string('verification/email_verification_email.html', context)
+        plain_message = strip_tags(html_message)
+
+        send_mail(
+            subject,
+            plain_message,
+            settings.DEFAULT_FROM_EMAIL,
+            [self.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+        self.confirmation_sent_at = timezone.now()
+        # You might set confirmation_expires_at here if you want a strict expiry
+        self.save(update_fields=['confirmation_sent_at'])
+    
