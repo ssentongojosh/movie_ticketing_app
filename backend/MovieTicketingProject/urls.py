@@ -16,8 +16,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path,include
+from django.views.generic.base import RedirectView
 
 urlpatterns = [
+    path('', RedirectView.as_view(url='http://localhost:5173', permanent=True), name='redirect_landing_page'),
     path('admin/', admin.site.urls),
     path('api/v1/users/',include('users.urls'))
 ]
