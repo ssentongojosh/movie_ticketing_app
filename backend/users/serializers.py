@@ -6,6 +6,7 @@ from django.db import transaction # Import transaction for atomic operations
 from .models import CustomUser
 from userprofile.models import UserProfile
 
+
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     password2 = serializers.CharField(write_only=True, required=True)
