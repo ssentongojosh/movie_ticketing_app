@@ -79,6 +79,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         ordering = ['-date_joined'] # Order by newest first
     
     def send_verification_email(self, request):
+        from .tasks import send_email_task
         token = default_token_generator.make_token(self)
         uid = urlsafe_base64_encode(force_bytes(self.pk))
 
@@ -97,13 +98,12 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         html_message = render_to_string('verification/email_verification_email.html', context)
         plain_message = strip_tags(html_message)
 
-        send_mail(
+        send_email_task.delay(
             subject,
             plain_message,
             settings.DEFAULT_FROM_EMAIL,
             [self.email],
             html_message=html_message,
-            fail_silently=False,
         )
         self.confirmation_sent_at = timezone.now()
         # You might set confirmation_expires_at here if you want a strict expiry

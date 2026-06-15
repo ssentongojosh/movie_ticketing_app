@@ -9,10 +9,12 @@ djangorestframework = "*"
 python-decouple = "*"
 dj-database-url = "*"
 django-cors-headers = "*"
-psycopg = "*"
 djangorestframework-simplejwt = "*"
-mysqlclient = "*"
+# mysqlclient = "*"
 honcho = "*"
+celery = "*"
+redis = "*"
+psycopg = "*"
 
 [dev-packages]
 

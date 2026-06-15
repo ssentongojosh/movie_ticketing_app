@@ -44,6 +44,10 @@ class PasswordResetRequestSerializer(serializers.Serializer):
         return value
 
     def save(self, **kwargs):
+        from .tasks import send_email_task
+        from django.template.loader import render_to_string
+        from django.utils.html import strip_tags
+
         # This method is called by the view to send the email
         request = self.context.get('request')
         
@@ -61,21 +65,30 @@ class PasswordResetRequestSerializer(serializers.Serializer):
         token = default_token_generator.make_token(user)
         uid = urlsafe_base64_encode(force_bytes(user.pk))
 
-        
-        # Use Django's built-in PasswordResetForm to handle sending the email
-        form = PasswordResetForm({'email': email})
-        if form.is_valid():
-            # Pass the request object and email options to the form's save method
-            form.save(
-                domain_override=request.get_host(), # Use current host for domain in email link
-                use_https=request.is_secure(), # Use HTTPS if request is secure
-                request=request,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                **self.get_email_options(user,uid,token)
-            )
-        else:
-            # This should ideally not happen if validate_email is robust
-            raise serializers.ValidationError(form.errors)
+        # Email options/context
+        email_options = self.get_email_options(user, uid, token)
+        context = {
+            'email': user.email,
+            'domain': request.get_host(),
+            'site_name': 'MovieTix',
+            'uid': uid,
+            'user': user,
+            'token': token,
+            'protocol': 'https' if request.is_secure() else 'http',
+            **email_options['extra_email_context']
+        }
+
+        subject = render_to_string(email_options['subject_template_name'], context).strip()
+        html_message = render_to_string(email_options['email_template_name'], context)
+        plain_message = strip_tags(html_message)
+
+        send_email_task.delay(
+            subject,
+            plain_message,
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+            html_message=html_message,
+        )
 
 
 class PasswordResetConfirmSerializer(serializers.Serializer):

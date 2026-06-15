@@ -125,6 +125,15 @@ STATIC_ROOT = BASE_DIR / 'staticfiles' # Production static files collection
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
+# Celery Configuration Options
+CELERY_BROKER_URL = config('CELERY_BROKER_URL', default='redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = config('CELERY_RESULT_BACKEND', default='redis://localhost:6379/0')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = config('TIME_ZONE', default='Africa/Kampala')
+
+
 # Django REST Framework settings (optional, but good to include here)
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -144,20 +153,14 @@ REST_FRAMEWORK = {
 # By default, it looks in the same directory as the settings file, then parent directories.
 # Since BASE_DIR is now set to the backend root, this works naturally.
 # Email Backend Settings
-# For development, print emails to console.
-# In production, you would configure an actual SMTP server or a service like SendGrid/Mailgun.
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-# EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend' # Another option for dev
-# EMAIL_FILE_PATH = BASE_DIR / 'sent_emails' # Directory where emails will be saved if using filebased backend
-
-# For production, you'd typically use:
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = config('EMAIL_HOST')
-# EMAIL_PORT = config('EMAIL_PORT', cast=int)
-# EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool)
-# EMAIL_HOST_USER = config('EMAIL_HOST_USER')
-# EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
-# DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='webmaster@localhost')
+# In development, you might override this to 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.sendgrid.net')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='apikey') # SendGrid uses 'apikey' as the username
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='webmaster@localhost')
 
 # Password Reset URL (for frontend to construct the link)
 # This is the URL that will be embedded in the password reset email.
